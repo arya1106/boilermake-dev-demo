@@ -6,18 +6,31 @@ import {
   Button,
   Grid,
   Paper,
+  Stack,
+  TextField,
   Toolbar,
   Typography,
   styled,
 } from "@mui/material";
+import { MapContainer, ZoomControl } from "react-leaflet";
 import axios from "axios";
+import dynamic from "next/dynamic";
+import { LatLng, Marker } from "leaflet";
 
 export default function Transcribe() {
+  const MapWithNoSSR = dynamic(() => import("../components/LeafletMap"), {
+    ssr: false,
+  });
 
-  const [currentFile, setCurrentFile] = useState(null || "");
+  const [currentFile, setCurrentFile] = useState<null | FileList>(null);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([
+    40.4276, -86.9169,
+  ]);
 
   function handleFileChange(event: React.FormEvent<HTMLInputElement>) {
-    setCurrentFile(event.currentTarget.value);
+    setCurrentFile(event.currentTarget.files);
+    var formData = new FormData();
+    formData.append("audioFile", (currentFile ?? [""])[0]);
   }
 
   return (
@@ -28,17 +41,69 @@ export default function Transcribe() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-    <ResponsiveAppBar />
-      <Grid container component="main" sx={{ p: 3 }} alignItems="center" justifyContent="center" style={{minHeight: "100vh"}} spacing={0} direction="column">
+      <ResponsiveAppBar />
+      <Grid
+        container
+        component="main"
+        sx={{ p: 3 }}
+        style={{ minHeight: "100vh" }}
+        spacing={0}
+        direction="column"
+      >
         <Toolbar />
-        <Grid container gap={2} spacing={2} flexGrow={1}  alignItems="center" justifyContent="center" sx={{flexDirection: {xs: "column", md: "row"}}}>
-          <Button variant="contained" component="label">
-            Upload Audio
-            <input type="file" value={currentFile} accept="audio/*" onChange={handleFileChange} hidden  />
-          </Button>
-          <Button variant="contained">
-            Lol submit
-          </Button>
+        <Grid
+          container
+          gap={2}
+          spacing={2}
+          flexGrow={1}
+          alignItems="center"
+          justifyContent="center"
+          direction="row"
+        >
+          <Stack spacing={2}>
+            <TextField variant="standard" label="Title"></TextField>
+            <TextField variant="standard" label="Recorder"></TextField>
+            <Button
+              onClick={() => {
+                navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                    console.log(position);
+                    setMapCenter([
+                      position.coords.latitude,
+                      position.coords.longitude,
+                    ]);
+                  },
+                  (positionError) => {
+                    console.error(positionError);
+                  }
+                );
+              }}
+              variant="contained"
+            >
+              Find Me
+            </Button>
+            <MapWithNoSSR center={mapCenter} locationTextFieldId="location" />
+            <TextField
+              id="location"
+              variant="outlined"
+              label="Location"
+              defaultValue={"40.4276, -86.9169"}
+              InputProps={{ readOnly: true }}
+            ></TextField>
+            <Button variant="contained" component="label">
+              Upload Audio
+              <input
+                id="audioFileInput"
+                type="file"
+                accept="audio/*"
+                onChange={handleFileChange}
+                hidden
+              />
+            </Button>
+          </Stack>
+          <Grid item>
+            <Button variant="contained">Lol submit</Button>
+          </Grid>
         </Grid>
       </Grid>
     </>

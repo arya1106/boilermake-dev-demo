@@ -1,9 +1,11 @@
 import Head from "next/head";
-import React, { useState } from "react";
+import React, { FormEvent, Ref, useRef, useState } from "react";
 import ResponsiveAppBar from "../components/ResponsiveAppBar";
+import FormInput from "../components/FormInput";
 import {
   Box,
   Button,
+  Container,
   Grid,
   Paper,
   Stack,
@@ -22,16 +24,9 @@ export default function Transcribe() {
     ssr: false,
   });
 
-  const [currentFile, setCurrentFile] = useState<null | FileList>(null);
-  const [mapCenter, setMapCenter] = useState<[number, number]>([
-    40.4276, -86.9169,
-  ]);
+  const formInputStateRef = useRef<any>();
 
-  function handleFileChange(event: React.FormEvent<HTMLInputElement>) {
-    setCurrentFile(event.currentTarget.files);
-    var formData = new FormData();
-    formData.append("audioFile", (currentFile ?? [""])[0]);
-  }
+  const [currentLocation, setCurrentLocation] = React.useState<[number, number]>([0,0]);
 
   return (
     <>
@@ -61,48 +56,34 @@ export default function Transcribe() {
           direction="row"
         >
           <Stack spacing={2}>
-            <TextField variant="standard" label="Title"></TextField>
-            <TextField variant="standard" label="Recorder"></TextField>
-            <Button
-              onClick={() => {
-                navigator.geolocation.getCurrentPosition(
-                  (position) => {
-                    console.log(position);
-                    setMapCenter([
-                      position.coords.latitude,
-                      position.coords.longitude,
-                    ]);
-                  },
-                  (positionError) => {
-                    console.error(positionError);
-                  }
-                );
-              }}
-              variant="contained"
-            >
-              Find Me
-            </Button>
-            <MapWithNoSSR center={mapCenter} locationTextFieldId="location" />
+            <FormInput ref={formInputStateRef}/>
+            <MapWithNoSSR center={[40.4276, -86.9169]} locationTextFieldId="location" coordsTextFieldId="coords"/>
             <TextField
               id="location"
               variant="outlined"
               label="Location"
-              defaultValue={"40.4276, -86.9169"}
+              defaultValue={" "}
               InputProps={{ readOnly: true }}
             ></TextField>
-            <Button variant="contained" component="label">
-              Upload Audio
-              <input
-                id="audioFileInput"
-                type="file"
-                accept="audio/*"
-                onChange={handleFileChange}
-                hidden
-              />
-            </Button>
+            <input
+              id="coords"
+              type="text"
+              hidden />
           </Stack>
           <Grid item>
-            <Button variant="contained">Lol submit</Button>
+            <Button onClick={()=>{
+              let formData = new FormData();
+              const formInputData = formInputStateRef.current.getFormInput();
+              formData.append("audioFile", formInputData.file);
+              formData.append("title", formInputData.title);
+              formData.append("recorder", formInputData.recorder);
+              const coords = (document.getElementById("coords") as HTMLInputElement).value.split(",").map((value, index, array)=>{
+                return parseFloat(value).toPrecision(6);
+              });
+              formData.append("lat", coords[0]);
+              formData.append("lng", coords[1]);
+
+            }} variant="contained">Lol submit</Button>
           </Grid>
         </Grid>
       </Grid>

@@ -8,7 +8,7 @@ const FormInput = forwardRef((props, ref) => {
 
     const [currentTitle, setCurrentTitle] = useState("");
     const [currentRecorder, setCurrentRecorder] = useState("");
-    const [currentFile, setCurrentFile] = useState<[] | FileList>([]);
+    const [currentFile, setCurrentFile] = useState<File>();
 
     useImperativeHandle(ref, ()=>({
         getFormInput: ()=>{
@@ -18,7 +18,7 @@ const FormInput = forwardRef((props, ref) => {
 
     function handleFileChange(event: React.FormEvent<HTMLInputElement>) {
         event.preventDefault();
-        setCurrentFile(event.currentTarget.files ?? []);
+        setCurrentFile((event.currentTarget.files ?? [])[0]);
     }
 
     return (
@@ -34,7 +34,7 @@ const FormInput = forwardRef((props, ref) => {
                     hidden />
             </Button>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography>{currentFile[0]?.name}</Typography>
+                <Typography>{currentFile?.name}</Typography>
             </Box>
         </Stack><TextField id="title" variant="standard" label="Title" onChange={(event) => {
             setCurrentTitle(event.currentTarget.value)

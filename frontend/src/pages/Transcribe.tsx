@@ -71,7 +71,7 @@ export default function Transcribe() {
               hidden />
           </Stack>
           <Grid item>
-            <Button onClick={()=>{
+            <Button onClick={async ()=>{
               let formData = new FormData();
               const formInputData = formInputStateRef.current.getFormInput();
               formData.append("audioFile", formInputData.file);
@@ -82,7 +82,12 @@ export default function Transcribe() {
               });
               formData.append("lat", coords[0]);
               formData.append("lng", coords[1]);
-
+              const response = await axios({
+                method: 'post',
+                url: 'http://127.0.0.1:8000/createTranscription',
+                data: formData,
+                headers: {'Content-Type': 'multipart/form-data' }
+                })
             }} variant="contained">Lol submit</Button>
           </Grid>
         </Grid>

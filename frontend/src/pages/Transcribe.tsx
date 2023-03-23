@@ -105,7 +105,7 @@ export default function Transcribe() {
               formData.append("lng", coords[1]);
               const response = await axios({
                 method: 'post',
-                url: 'http://129.213.116.196:8000/createTranscription',
+                url: 'https://129.213.116.196:8000/createTranscription',
                 data: formData,
                 headers: {'Content-Type': 'multipart/form-data' }
                 })

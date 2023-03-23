@@ -24,6 +24,7 @@ import { MapContainer, ZoomControl } from "react-leaflet";
 import axios from "axios";
 import dynamic from "next/dynamic";
 import { LatLng, Marker } from "leaflet";
+import { format, parseISO } from "date-fns";
 
 export default function Transcribe() {
   const MapWithNoSSR = dynamic(() => import("../components/LeafletMap"), {
@@ -116,12 +117,12 @@ export default function Transcribe() {
               }
               setTranscript(resData['text']);
               setDatabaseLocation([resData['lat'], resData['long']])
-              setDatabaseTimestamp(resData['createdOn'])
+              setDatabaseTimestamp(format(parseISO(resData["createdOn"]), "PPpp"));
               setShowToast(true);
               setDatabaseRecorder(resData['recorder'])
               setDatabaseTitle(resData['title'])
               setDatabaseFilename(resData['filename'])
-            }} variant="contained">Lol submit</Button>
+            }} variant="contained">Submit</Button>
             <Dialog open={showToast} onClose={handleClose} fullWidth maxWidth="sm">
               <DialogTitle>File Status</DialogTitle>
               <DialogContent>
@@ -133,7 +134,6 @@ export default function Transcribe() {
               <DialogContentText fontWeight="700">Recorder:</DialogContentText>
               <DialogContentText >{databaseRecorder}</DialogContentText>
               <br/>
-              <DialogContentText fontWeight="700">Original Filename:</DialogContentText>
               <DialogContentText >{databaseFilename}</DialogContentText>
               <br/>
               <DialogContentText fontWeight="700">Transcript:</DialogContentText>

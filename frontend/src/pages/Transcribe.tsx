@@ -6,8 +6,14 @@ import {
   Box,
   Button,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Grid,
   Paper,
+  Snackbar,
   Stack,
   TextField,
   Toolbar,
@@ -26,7 +32,21 @@ export default function Transcribe() {
 
   const formInputStateRef = useRef<any>();
 
-  const [currentLocation, setCurrentLocation] = React.useState<[number, number]>([0,0]);
+  const [showToast, setShowToast] = useState(false);
+  const [databseFileStatus, setDatabaseFileStatus] = useState("");
+  const [transcript, setTranscript] = useState("");
+  const [databaseLocation, setDatabaseLocation] = useState([40.4257, -86.9269]);
+  const [databaseTimestamp, setDatabaseTimestamp] = useState("");
+  const [databaseRecorder, setDatabaseRecorder] = useState("");
+  const [databaseTitle, setDatabaseTitle] = useState("");
+  const [databaseFilename, setDatabaseFilename] = useState("");
+
+  const handleClose = () => {
+    setShowToast(false);
+  }
+
+  function lon2tile(lon: number, zoom: number) { return (Math.floor((lon+180)/360*Math.pow(2,zoom))); }
+  function lat2tile(lat: number,zoom: number)  { return (Math.floor((1-Math.log(Math.tan(lat*Math.PI/180) + 1/Math.cos(lat*Math.PI/180))/Math.PI)/2 *Math.pow(2,zoom))); }
 
   return (
     <>
@@ -88,7 +108,51 @@ export default function Transcribe() {
                 data: formData,
                 headers: {'Content-Type': 'multipart/form-data' }
                 })
+              const resData = response.data
+              if(resData['fileExistsInDB']){
+                setDatabaseFileStatus("The file you uploaded already exists in the databse. The information is below: ")
+              } else {
+                setDatabaseFileStatus("File successfully transcribed! The information is below:")
+              }
+              setTranscript(resData['text']);
+              setDatabaseLocation([resData['lat'], resData['long']])
+              setDatabaseTimestamp(resData['createdOn'])
+              setShowToast(true);
+              setDatabaseRecorder(resData['recorder'])
+              setDatabaseTitle(resData['title'])
+              setDatabaseFilename(resData['filename'])
             }} variant="contained">Lol submit</Button>
+            <Dialog open={showToast} onClose={handleClose} fullWidth maxWidth="sm">
+              <DialogTitle>File Status</DialogTitle>
+              <DialogContent>
+              <DialogContentText>{databseFileStatus}</DialogContentText>
+              <br/>
+              <DialogContentText fontWeight="700">Title:</DialogContentText>
+              <DialogContentText >{databaseTitle}</DialogContentText>
+              <br/>
+              <DialogContentText fontWeight="700">Recorder:</DialogContentText>
+              <DialogContentText >{databaseRecorder}</DialogContentText>
+              <br/>
+              <DialogContentText fontWeight="700">Original Filename:</DialogContentText>
+              <DialogContentText >{databaseFilename}</DialogContentText>
+              <br/>
+              <DialogContentText fontWeight="700">Transcript:</DialogContentText>
+              <DialogContentText >{transcript}</DialogContentText>
+              <br/>
+              <DialogContentText fontWeight="700">Location:</DialogContentText>
+              {
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={`https://tile.openstreetmap.org/17/${lon2tile(databaseLocation[1], 17)}/${lat2tile(databaseLocation[0], 17)}.png`} alt="map"/>
+              }
+              <br/>
+              <br/>
+              <DialogContentText fontWeight="700">Created On:</DialogContentText>
+              <DialogContentText >{databaseTimestamp}</DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleClose}>OK</Button>
+              </DialogActions>
+            </Dialog>
           </Grid>
         </Grid>
       </Grid>

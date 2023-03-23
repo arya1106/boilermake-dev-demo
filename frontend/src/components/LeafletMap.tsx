@@ -7,11 +7,10 @@ import React, { Dispatch, RefAttributes, SetStateAction, useRef } from 'react';
 import { useMapEvent } from 'react-leaflet';
 import axios from 'axios';
 
-const LeafletMap = (props: JSX.IntrinsicAttributes & MapContainerProps & RefAttributes<Map> & {locationTextFieldId: string, coordsTextFieldId: string}) => {
-    const currentLocation = useRef([40.4276, -86.9169]);
+const LeafletMap = (props: JSX.IntrinsicAttributes & MapContainerProps & RefAttributes<Map> & {locationTextFieldId?: string, coordsTextFieldId?: string}) => {
 
     return (
-        <MapContainer {...props} zoom={16} zoomSnap={0.7} style={{ width: "40vw", height: "40vh" }}>
+        <MapContainer {...props} zoom={16} zoomSnap={0.7} style={{ width: "40vmax", height: "40vmin" }}>
             <TileLayer url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'/>
             <ClickMarker locationTextFieldId={props.locationTextFieldId} coordsTextFieldId={props.coordsTextFieldId}/>
             <FindMe locationTextFieldId={props.locationTextFieldId} coordsTextFieldId={props.coordsTextFieldId}/>
@@ -19,7 +18,7 @@ const LeafletMap = (props: JSX.IntrinsicAttributes & MapContainerProps & RefAttr
     );
 }
 
-const ClickMarker = ({locationTextFieldId, coordsTextFieldId}: {locationTextFieldId: string, coordsTextFieldId: string}) => {
+const ClickMarker = ({locationTextFieldId, coordsTextFieldId}: {locationTextFieldId?: string, coordsTextFieldId?: string}) => {
     let clickedMarker: Marker<any> | null = null;
     const map = useMapEvent("click", async (event)=>{
         map.eachLayer((layer)=>{
@@ -28,13 +27,13 @@ const ClickMarker = ({locationTextFieldId, coordsTextFieldId}: {locationTextFiel
             }
         })
         clickedMarker = marker(event.latlng).addTo(map);
-        updateLocationBox(locationTextFieldId, event.latlng);
-        updateCoordsBox(coordsTextFieldId, event.latlng)
+        updateLocationBox(locationTextFieldId ?? "", event.latlng);
+        updateCoordsBox(coordsTextFieldId ?? "", event.latlng)
     })
     return <div></div>
 }
 
-const FindMe = ({locationTextFieldId, coordsTextFieldId}: {locationTextFieldId: string, coordsTextFieldId: string}) => {
+const FindMe = ({locationTextFieldId, coordsTextFieldId}: {locationTextFieldId?: string, coordsTextFieldId?: string}) => {
 
     const map = useMap();
     map.locate({setView: true, maxZoom: 16});
@@ -48,8 +47,8 @@ const FindMe = ({locationTextFieldId, coordsTextFieldId}: {locationTextFieldId: 
         console.log(errorEvent.message)
         const defaultCoords = new LatLng(40.4276, -86.9169);
         marker(defaultCoords).addTo(map)
-        updateLocationBox(locationTextFieldId, defaultCoords);
-        updateCoordsBox(coordsTextFieldId, defaultCoords);
+        updateLocationBox(locationTextFieldId ?? "", defaultCoords);
+        updateCoordsBox(coordsTextFieldId ?? "", defaultCoords);
     })
     
     useMapEvent("locationfound", (event)=>{
@@ -59,8 +58,8 @@ const FindMe = ({locationTextFieldId, coordsTextFieldId}: {locationTextFieldId: 
             }
         })
         marker(event.latlng).addTo(map)
-        updateLocationBox(locationTextFieldId, event.latlng);
-        updateCoordsBox(coordsTextFieldId, event.latlng)
+        updateLocationBox(locationTextFieldId ?? "", event.latlng);
+        updateCoordsBox(coordsTextFieldId ?? "", event.latlng)
     })
 
     return <div></div>
@@ -83,5 +82,7 @@ function updateCoordsBox(coordsTextFieldId: string, coords: LatLng){
     const coordsTextField = document.getElementById(coordsTextFieldId);
     coordsTextField?.setAttribute("value", `${coords.lat},${coords.lng}`)
 }
+
+const CenterMarker = ()=>{}
 
 export default LeafletMap

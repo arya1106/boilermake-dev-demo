@@ -2,7 +2,7 @@ import Head from "next/head";
 import Image from "next/image";
 import { Inter } from "next/font/google";
 import ResponsiveAppBar from "@/components/ResponsiveAppBar";
-import { Box, Toolbar, Typography } from "@mui/material";
+import { Box, Button, Container, Grid, Stack, Toolbar, Typography } from "@mui/material";
 import dynamic from "next/dynamic";
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,9 +21,36 @@ export default function Home() {
           <link rel="icon" href="/favicon.ico" />
       </Head>
       <ResponsiveAppBar/>
-      <Box component="main" sx={{ p: 3 }}>
+      <Grid 
+        container
+        component="main"
+        sx={{ p: 3 }}
+        style={{ minHeight: "100vh" }}
+        spacing={0}
+        direction="column"
+        alignContent={"center"}
+        justifyContent={"center"}
+        textAlign={"center"}
+              >
+                <Typography variant="h4" component="h1" gutterBottom>
+          Welcome to TranscribeMe!
+        </Typography>
+                <Grid item>
         <Toolbar />
-      </Box>
+        <Typography variant="h5" component="h2" gutterBottom>
+          This is a website that allows you to transcribe audio files and query already transcribed files.
+        </Typography>
+        <Typography variant="h6" component="h2" gutterBottom>
+          To get started, click the &quot;Transcribe&quot; or &quot;Query&quot; button below or in the app bar.
+        </Typography>
+        <Grid item>
+          <Stack sx={{display: "flex"}} flexGrow={1} justifyContent={"center"} gap={2} direction="row">
+          <Button fullWidth variant="contained" href="/transcribe" >Transcribe</Button>
+          <Button fullWidth variant="contained" href="/query" >Query</Button>
+          </Stack>
+        </Grid>
+      </Grid>
+      </Grid>
     </>
   );
 }

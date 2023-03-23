@@ -45,8 +45,8 @@ export default function Home() {
         </Typography>
         <Grid item>
           <Stack sx={{display: "flex"}} flexGrow={1} justifyContent={"center"} gap={2} direction="row">
-          <Button fullWidth variant="contained" href="/transcribe" >Transcribe</Button>
-          <Button fullWidth variant="contained" href="/query" >Query</Button>
+          <Button fullWidth variant="contained" href="/Transcribe" >Transcribe</Button>
+          <Button fullWidth variant="contained" href="/Query" >Query</Button>
           </Stack>
         </Grid>
       </Grid>

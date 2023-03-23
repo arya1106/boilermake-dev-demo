@@ -1,5 +1,5 @@
 from crypt import methods
-from datetime import datetime
+import datetime
 import json
 import os
 from flask import Flask, request
@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 import psycopg2
 import hashlib
 from dotenv import load_dotenv
+
 
 load_dotenv()
 app = Flask(__name__)
@@ -41,7 +42,7 @@ def createTranscription():
                 "text": text,
                 "lat": data[1],
                 "long": data[2],
-                "createdOn": data[3].strftime("%m/%d/%Y, %H:%M:%S"),
+                "createdOn": data[3].replace(tzinfo=datetime.timezone.utc).isoformat(),
                 "recorder": data[4],
                 "title": data[5],
                 "filename": data[6]
@@ -50,15 +51,44 @@ def createTranscription():
             os.remove(filename)
             cur.execute("SELECT transcript, ST_Y(location), ST_X(location), created_on, recorder, title, filename FROM audio_transcriptions WHERE audio_hash = %s;", (file_hash,))
             data = cur.fetchone()
-            print(data[3].strftime("%m/%d/%Y, %H:%M:%S"))
             return json.dumps({
                 "fileExistsInDB": True,
                 "text": data[0],
                 "lat": data[1],
                 "long": data[2],
-                "createdOn": data[3].strftime("%m/%d/%Y, %H:%M:%S"),
+                "createdOn": data[3].replace(tzinfo=datetime.timezone.utc).isoformat(),
                 "recorder": data[4],
                 "title": data[5],
                 "filename": data[6]
             })
     
+@app.route("/queryDatabase", methods=["POST"])
+def queryDatabase():
+    conn = psycopg2.connect(os.environ.get("CONNECTION_STRING"))
+    file = request.files.get("audioFile")
+    filename = secure_filename(file.filename)
+    file.save(filename)
+    file.close()
+    with open(filename, 'rb') as audio_file_local:
+        file_hash = hashlib.md5(audio_file_local.read()).hexdigest()
+    with conn.cursor() as cur:
+        cur.execute(f"SELECT 1 FROM audio_transcriptions WHERE audio_hash = %s;", (file_hash,))
+        if(cur.fetchone() == None):
+            os.remove(filename)
+            return json.dumps({
+                "fileExistsInDB": False
+            })
+        else:
+            os.remove(filename)
+            cur.execute("SELECT transcript, ST_Y(location), ST_X(location), created_on, recorder, title, filename FROM audio_transcriptions WHERE audio_hash = %s;", (file_hash,))
+            data = cur.fetchone()
+            return json.dumps({
+                "fileExistsInDB": True,
+                "text": data[0],
+                "lat": data[1],
+                "long": data[2],
+                "createdOn": data[3].replace(tzinfo=datetime.timezone.utc).isoformat(),
+                "recorder": data[4],
+                "title": data[5],
+                "filename": data[6]
+            })

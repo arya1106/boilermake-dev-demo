@@ -29,7 +29,7 @@ const FormInput = forwardRef((props, ref) => {
                 <input
                     id="audioFileInput"
                     type="file"
-                    accept="audio/*"
+                    accept="audio/mp3,audio/mpeg,audio/mp4,audio/x-m4a"
                     onChange={handleFileChange}
                     hidden />
             </Button>
